@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'daily_weather_forecast_page.dart';
+import 'package:location/location.dart';
 
 class HourlyWeatherList extends StatefulWidget {
   @override
@@ -11,15 +12,43 @@ class HourlyWeatherList extends StatefulWidget {
 
 class _HourlyWeatherListState extends State<HourlyWeatherList> {
   List<HourlyWeatherData> hourlyData = [];
+  Location location = Location();
 
   @override
   void initState() {
     super.initState();
-    fetchHourlyWeatherData();
+    fetchLocationAndWeather();
   }
 
-  Future<void> fetchHourlyWeatherData() async {
-    var url = 'https://api.openweathermap.org/data/2.5/forecast?q=Tampere&appid=ae684053bd359fc697d2d89c798ccce2&units=metric';
+  Future<void> fetchLocationAndWeather() async {
+    bool serviceEnabled;
+    PermissionStatus permissionGranted;
+
+    // Tarkista, ovatko sijaintipalvelut käytössä
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        return;
+      }
+    }
+
+    // Pyydä sijaintioikeuksia
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    // Hae käyttäjän sijainti
+    LocationData locationData = await location.getLocation();
+    fetchHourlyWeatherData(locationData.latitude, locationData.longitude);
+  }
+
+  Future<void> fetchHourlyWeatherData(double? lat, double? lon) async {
+    var url = 'https://api.openweathermap.org/data/2.5/forecast?lat=$lat&lon=$lon&appid=ae684053bd359fc697d2d89c798ccce2&units=metric';
     var response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
@@ -36,24 +65,24 @@ class _HourlyWeatherListState extends State<HourlyWeatherList> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      itemCount: hourlyData.length,
-      itemBuilder: (context, index) {
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => DailyWeatherForecastPage()),
-            );
-          },
-          child: HourlyWeatherItem(
-            time: hourlyData[index].time,
-            icon: getWeatherIcon(hourlyData[index].condition),
-            temperature: '${hourlyData[index].temperature}°C',
-          ),
-        );
-      },
+        scrollDirection: Axis.horizontal,
+        itemCount: hourlyData.length,
+        itemBuilder: (context, index) {
+            return GestureDetector(
+            onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => DailyWeatherForecastPage()),
+          );
+        },
+        child: HourlyWeatherItem(
+        dateTime: hourlyData[index].dateTime, // Päivitetty käyttämään dateTime-muuttujaa
+        icon: getWeatherIcon(hourlyData[index].condition),
+        temperature: '${hourlyData[index].temperature}°C',
+      ),
     );
+  },
+);
   }
 
   IconData getWeatherIcon(int condition) {
@@ -77,18 +106,18 @@ class _HourlyWeatherListState extends State<HourlyWeatherList> {
 }
 
 class HourlyWeatherData {
-  final String time;
+  final String dateTime;
   final int condition;
   final double temperature;
 
-  HourlyWeatherData({required this.time, required this.condition, required this.temperature});
+  HourlyWeatherData({required this.dateTime, required this.condition, required this.temperature});
 
   factory HourlyWeatherData.fromJson(Map<String, dynamic> json) {
     DateTime dateTime = DateTime.parse(json['dt_txt']);
-    String formattedTime = DateFormat('H').format(dateTime); // Vain tunnin näyttäminen
+    String formattedDateTime = DateFormat('MMM d, H:mm').format(dateTime);
 
     return HourlyWeatherData(
-      time: formattedTime,
+      dateTime: formattedDateTime,
       condition: json['weather'][0]['id'],
       temperature: json['main']['temp'].toDouble(),
     );
@@ -96,11 +125,11 @@ class HourlyWeatherData {
 }
 
 class HourlyWeatherItem extends StatelessWidget {
-  final String time;
+  final String dateTime; // Päivitetty muuttujan nimi
   final IconData icon;
   final String temperature;
 
-  HourlyWeatherItem({required this.time, required this.icon, required this.temperature});
+  HourlyWeatherItem({required this.dateTime, required this.icon, required this.temperature}); // Päivitetty muuttujan nimi
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +152,7 @@ class HourlyWeatherItem extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text(time, style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(dateTime, style: TextStyle(fontWeight: FontWeight.bold)), // Päivitetty näyttämään päivämäärä ja aika
           Icon(icon, color: Theme.of(context).colorScheme.secondary),
           Text(temperature),
         ],

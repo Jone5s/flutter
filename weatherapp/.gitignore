@@ -1,0 +1,68 @@
+# Files and directories created by pub
+/.dart_tool/
+/.flutter-plugins
+/.flutter-plugins-dependencies
+/.packages
+
+# Flutter/Dart build artifacts
+/build/
+/ios/Flutter/.last_build_id
+*.lock
+*.iml
+*.ipr
+*.iws
+/.idea/
+
+# Android files
+/android/.gradle
+/android/.idea
+/android/captures/
+/android/local.properties
+
+# iOS files
+/ios/.symlinks/
+/ios/Flutter/flutter_export_environment.sh
+/ios/Flutter/Generated.xcconfig
+/ios/Pods/
+/ios/Runner.xcworkspace
+
+# macOS files
+/macos/Pods/
+/macos/Flutter/ephemeral/
+/macos/Flutter/.last_build_id
+
+# Web files
+/web/favicon.png
+/web/icons/
+/web/manifest.json
+/web.iml
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code related
+.vscode/
+
+# Thumbnails created by macOS
+.DS_Store
+
+# Files created by Windows
+Thumbs.db
+Desktop.ini
+
+# Node.js dependencies
+/node_modules/
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# Firebase cache
+/.firebase/
