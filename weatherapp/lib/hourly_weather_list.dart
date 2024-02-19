@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'daily_weather_forecast_page.dart';
 import 'package:location/location.dart';
+import 'location_service.dart';
 
 class HourlyWeatherList extends StatefulWidget {
   @override
@@ -14,41 +15,26 @@ class _HourlyWeatherListState extends State<HourlyWeatherList> {
   List<HourlyWeatherData> hourlyData = [];
   Location location = Location();
 
-  @override
-  void initState() {
-    super.initState();
-    fetchLocationAndWeather();
-  }
-
-  Future<void> fetchLocationAndWeather() async {
-    bool serviceEnabled;
-    PermissionStatus permissionGranted;
-
-    // Tarkista, ovatko sijaintipalvelut käytössä
-    serviceEnabled = await location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
-      if (!serviceEnabled) {
-        return;
-      }
-    }
-
-    // Pyydä sijaintioikeuksia
-    permissionGranted = await location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) {
-        return;
-      }
-    }
-
-    // Hae käyttäjän sijainti
-    LocationData locationData = await location.getLocation();
+@override
+void initState() {
+  super.initState();
+  LocationService().addListener((locationData) {
     fetchHourlyWeatherData(locationData.latitude, locationData.longitude);
-  }
+  });
+}
 
   Future<void> fetchHourlyWeatherData(double? lat, double? lon) async {
-    var url = 'https://api.openweathermap.org/data/2.5/forecast?lat=$lat&lon=$lon&appid=ae684053bd359fc697d2d89c798ccce2&units=metric';
+  if (lat == null || lon == null) {
+    // Retry after a delay if the location is null
+    Future.delayed(Duration(seconds: 5), () {
+      LocationData? locationData = LocationService().currentLocation;
+      if (locationData != null) {
+        fetchHourlyWeatherData(locationData.latitude, locationData.longitude);
+      }
+    });
+    return;
+  }
+    var url = 'https://api.openweathermap.org/data/2.5/forecast?lat=$lat&lon=$lon&appid=17af1c99046fbad53238fe59ce1993e6&units=metric';
     var response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
