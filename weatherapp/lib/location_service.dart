@@ -47,7 +47,7 @@ class LocationService {
   void addListener(Function(LocationData) listener) {
     _listeners.add(listener);
     if (currentLocation != null) {
-      listener(currentLocation!); // Immediately call listener if location is already available
+      listener(currentLocation!);
     }
   }
 }

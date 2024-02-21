@@ -14,17 +14,18 @@ class _DailyWeatherForecastPageState extends State<DailyWeatherForecastPage> {
   List<dynamic> dailyForecasts = [];
   Location location = new Location();
 
-  @override
+@override
 void initState() {
   super.initState();
-  // Use the LocationService to get the location
-  LocationData? locationData = LocationService().currentLocation;
-  if (locationData != null) {
-    fetchWeatherData(locationData.latitude, locationData.longitude);
-  }
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    LocationData? locationData = LocationService().currentLocation;
+    if (locationData != null) {
+      fetchWeatherData(locationData.latitude, locationData.longitude, context);
+    }
+  });
 }
 
-  Future<void> fetchWeatherData(double? latitude, double? longitude) async {
+  Future<void> fetchWeatherData(double? latitude, double? longitude, BuildContext context) async {
     var url = 'https://api.openweathermap.org/data/2.5/forecast?lat=$latitude&lon=$longitude&appid=17af1c99046fbad53238fe59ce1993e6&units=metric';
     var response = await http.get(Uri.parse(url));
 
@@ -61,7 +62,12 @@ void initState() {
         }).toList();
       });
     } else {
-      print('Failed to fetch weather data');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to fetch weather data. Please try again later.'),
+          duration: Duration(seconds: 5), // Adjust duration as needed
+        ),
+      );
     }
   }
 
@@ -89,13 +95,32 @@ void initState() {
     return Scaffold(
       appBar: AppBar(
         title: Text('Viikon Sääennuste'),
+        backgroundColor: Colors.blueGrey, // Change as per your theme
+        elevation: 0,
       ),
-      body: ListView.builder(
-        itemCount: dailyForecasts.length,
-        itemBuilder: (context, index) {
-          return dailyForecasts[index];
-        },
-      ),
+      body: dailyForecasts.isEmpty
+          ? Center(child: CircularProgressIndicator()) // Show loading indicator when data is being fetched
+          : Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListView.builder(
+                itemCount: dailyForecasts.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    elevation: 2, // Adds a subtle shadow to each list item
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                      leading: Icon(_DailyWeatherForecastPageState().getWeatherIcon(dailyForecasts[index].condition), color: Theme.of(context).colorScheme.secondary),
+                      title: Text(
+                        dailyForecasts[index].day,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(dailyForecasts[index].weather),
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }
@@ -109,10 +134,27 @@ class WeatherListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(_DailyWeatherForecastPageState().getWeatherIcon(condition), color: Theme.of(context).colorScheme.secondary),
-      title: Text(day, style: TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(weather),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          // Use colors that represent the weather condition or temperature; adjust as needed
+          colors: [Colors.blueAccent, Colors.lightBlueAccent],
+        ),
+      ),
+      child: ListTile(
+        leading: Icon(_DailyWeatherForecastPageState().getWeatherIcon(condition), size: 36, color: Colors.white),
+        title: Text(
+          day,
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        subtitle: Text(
+          weather,
+          style: TextStyle(color: Colors.white70),
+        ),
+      ),
     );
   }
 }

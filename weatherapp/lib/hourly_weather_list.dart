@@ -15,18 +15,18 @@ class _HourlyWeatherListState extends State<HourlyWeatherList> {
   List<HourlyWeatherData> hourlyData = [];
   Location location = Location();
 
-@override
-void initState() {
-  super.initState();
-  LocationService().addListener((locationData) {
-    fetchHourlyWeatherData(locationData.latitude, locationData.longitude);
-  });
-}
+  @override
+  void initState() {
+    super.initState();
+    LocationService().addListener((locationData) {
+      fetchHourlyWeatherData(locationData.latitude, locationData.longitude);
+    });
+  }
 
   Future<void> fetchHourlyWeatherData(double? lat, double? lon) async {
   if (lat == null || lon == null) {
     // Retry after a delay if the location is null
-    Future.delayed(Duration(seconds: 5), () {
+    Future.delayed(Duration(seconds: 3), () {
       LocationData? locationData = LocationService().currentLocation;
       if (locationData != null) {
         fetchHourlyWeatherData(locationData.latitude, locationData.longitude);
@@ -44,32 +44,40 @@ void initState() {
         hourlyData = list.map((item) => HourlyWeatherData.fromJson(item)).toList();
       });
     } else {
-      print('Failed to fetch hourly weather data');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to fetch hourly weather data. Please try again later.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: hourlyData.length,
-        itemBuilder: (context, index) {
+      return Scaffold(
+        body: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: hourlyData.length,
+          itemBuilder: (context, index) {
             return GestureDetector(
-            onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => DailyWeatherForecastPage()),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => DailyWeatherForecastPage()),
+                );
+              },
+              child: HourlyWeatherItem(
+                dateTime: hourlyData[index].dateTime,
+                icon: getWeatherIcon(hourlyData[index].condition),
+                temperature: '${hourlyData[index].temperature}°C',
+              ),
           );
         },
-        child: HourlyWeatherItem(
-        dateTime: hourlyData[index].dateTime, // Päivitetty käyttämään dateTime-muuttujaa
-        icon: getWeatherIcon(hourlyData[index].condition),
-        temperature: '${hourlyData[index].temperature}°C',
       ),
     );
-  },
-);
   }
+}
 
   IconData getWeatherIcon(int condition) {
     if (condition < 300) {
@@ -89,7 +97,8 @@ void initState() {
     }
     return Icons.error;
   }
-}
+
+
 
 class HourlyWeatherData {
   final String dateTime;
@@ -111,11 +120,11 @@ class HourlyWeatherData {
 }
 
 class HourlyWeatherItem extends StatelessWidget {
-  final String dateTime; // Päivitetty muuttujan nimi
+  final String dateTime;
   final IconData icon;
   final String temperature;
 
-  HourlyWeatherItem({required this.dateTime, required this.icon, required this.temperature}); // Päivitetty muuttujan nimi
+  HourlyWeatherItem({required this.dateTime, required this.icon, required this.temperature});
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +147,7 @@ class HourlyWeatherItem extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text(dateTime, style: TextStyle(fontWeight: FontWeight.bold)), // Päivitetty näyttämään päivämäärä ja aika
+          Text(dateTime, style: TextStyle(fontWeight: FontWeight.bold)),
           Icon(icon, color: Theme.of(context).colorScheme.secondary),
           Text(temperature),
         ],

@@ -1,40 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
+import 'location_service.dart';
 class WeatherInformation extends StatefulWidget {
   @override
   _WeatherInformationState createState() => _WeatherInformationState();
 }
 
 class _WeatherInformationState extends State<WeatherInformation> {
-  String city = 'Tampere';
+  String city = '';
   String temperature = '';
   String description = '';
   IconData weatherIcon = Icons.wb_sunny;
 
+
   @override
   void initState() {
     super.initState();
-    fetchWeatherData();
+    LocationService().addListener((locationData) {
+    fetchWeatherData(locationData.latitude, locationData.longitude);
+  });
   }
 
-  Future<void> fetchWeatherData() async {
-    var url = 'https://api.openweathermap.org/data/2.5/weather?q=$city&appid=ae684053bd359fc697d2d89c798ccce2&units=metric';
+  Future<void> fetchWeatherData(double? lat, double? lon) async {
+    if (lat == null || lon == null) {
+    // Retry after a delay if the location is null
+    Future.delayed(Duration(seconds: 3), () {
+      LocationData? locationData = LocationService().currentLocation;
+      if (locationData != null) {
+        fetchWeatherData(locationData.latitude, locationData.longitude);
+      }
+    });
+    return;
+  }
+    var url = 'https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=ae684053bd359fc697d2d89c798ccce2&units=metric';
     var response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       var data = json.decode(response.body);
       setState(() {
+        city = data['name'];
         temperature = '${data['main']['temp']}°C';
         description = data['weather'][0]['description'];
         weatherIcon = getWeatherIcon(data['weather'][0]['id']);
       });
     } else {
-      print('Failed to fetch weather data');
+      city = 'Failed to fetch weather data';
     }
   }
-
   IconData getWeatherIcon(int condition) {
     if (condition < 300) {
       return Icons.flash_on; // Thunderstorm
