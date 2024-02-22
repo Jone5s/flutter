@@ -15,6 +15,6 @@ Below are the main interfaces of the app, showcasing its design and functionalit
   <div style="flex-direction: column; align-items: center; margin: 10px;">
     <p><strong>Weekly Forecast Screen<strong/></p>
     <br/>
-    <img src="./screenshots/secongpage.jpg" width="390" alt="App Other Screen">
+    <img src="./screenshots/secondpage.jpg" width="390" alt="App Other Screen">
   </div>
 </div>
