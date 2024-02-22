@@ -10,11 +10,11 @@ Below are the main interfaces of the app, showcasing its design and functionalit
   <div style="flex-direction: column; align-items: center; margin: 10px;">
     <p><strong>Main Screen<strong/></p>
     <br/>
-    <img src="./screenshots/mainpage.PNG" width="400" alt="App Main Screen">
+    <img src="./screenshots/mainpage.jpg" width="400" alt="App Main Screen">
   </div>
   <div style="flex-direction: column; align-items: center; margin: 10px;">
     <p><strong>Weekly Forecast Screen<strong/></p>
     <br/>
-    <img src="./screenshots/sc2.PNG" width="390" alt="App Other Screen">
+    <img src="./screenshots/secongpage.jpg" width="390" alt="App Other Screen">
   </div>
 </div>
