@@ -1,6 +1,6 @@
 ## Basic Flutter Weather App
 
-This weather app is a simple yet functional application developed with Flutter. It fetches weather data from the OpenWeatherMap API, currently configured to display the weather for Tampere.
+This weather app is a simple yet functional application developed with Flutter. The app uses GPS to locate the user and show the weather according to their coordinates. It fetches the weather data from the OpenWeatherMap API.
 
 ### App Screenshots
 
